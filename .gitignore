@@ -3,3 +3,7 @@
 .direnv/
 
 build/
+
+dumps
+
+.vscode
