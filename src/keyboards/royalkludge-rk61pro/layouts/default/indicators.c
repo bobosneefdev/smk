@@ -31,51 +31,73 @@ void indicators_pre_update()
     indicators_pwm_disable();
 }
 
+// RGB state variables
+static uint8_t rgb_mode = 0;      // 0 = off, 1 = static, 2 = rainbow cycle
+static uint8_t rgb_brightness = 4; // 0-8 brightness levels
+static uint8_t rgb_color = 0;     // 0-7 color presets for static mode
+static uint16_t current_cycle = 0;
+
+// Color presets: Red, Green, Blue, Cyan, Magenta, Yellow, White, Rainbow
+static const uint16_t color_presets[8][3] = {
+    {1024, 0, 0},      // Red
+    {0, 1024, 0},      // Green  
+    {0, 0, 1024},      // Blue
+    {0, 1024, 1024},   // Cyan
+    {1024, 0, 1024},   // Magenta
+    {1024, 1024, 0},   // Yellow
+    {1024, 1024, 1024}, // White
+    {0, 0, 0}          // Rainbow (handled separately)
+};
+
 bool indicators_update_step(keyboard_state_t *keyboard, uint8_t current_step)
 {
-    keyboard;
-    current_step;
-    indicators_pwm_set_all_columns(0);
-
-    /*
-    static uint16_t current_cycle = 0;
+    if (rgb_mode == 0) {
+        // RGB off
+        indicators_pwm_set_all_columns(0);
+        return false;
+    }
 
     if (current_step == 0) {
-        if (current_cycle < 3072) {
-            current_cycle++;
+        current_cycle++;
+        if (current_cycle > 3072) current_cycle = 0;
+    }
+
+    uint16_t red_intensity = 0;
+    uint16_t green_intensity = 0;
+    uint16_t blue_intensity = 0;
+
+    if (rgb_mode == 1) {
+        // Static color mode
+        if (rgb_color < 7) {
+            red_intensity = color_presets[rgb_color][0];
+            green_intensity = color_presets[rgb_color][1];
+            blue_intensity = color_presets[rgb_color][2];
+        }
+    } else if (rgb_mode == 2) {
+        // Rainbow cycling mode
+        if (current_cycle < 1024) {
+            blue_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle + 1024) % 2048) - 1024);
+            red_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle) % 2048) - 1024);
+        } else if (current_cycle < 2048) {
+            red_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle) % 2048) - 1024);
+            green_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle + 1024) % 2048) - 1024);
         } else {
-            current_cycle = 0;
+            green_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle + 1024) % 2048) - 1024);
+            blue_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle) % 2048) - 1024);
         }
     }
 
-    uint16_t red_intensity   = 0;
-    uint16_t green_intensity = 0;
-    uint16_t blue_intensity  = 0;
+    // Apply brightness scaling (0-8 levels)
+    red_intensity = (red_intensity * rgb_brightness) / 8;
+    green_intensity = (green_intensity * rgb_brightness) / 8;
+    blue_intensity = (blue_intensity * rgb_brightness) / 8;
 
-    if (current_cycle < 1024) {
-        blue_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle + 1024) % 2048) - 1024);
-        red_intensity  = 1024 - (uint16_t)abs((int16_t)((current_cycle) % 2048) - 1024);
-    } else if (current_cycle < 2048) {
-        red_intensity   = 1024 - (uint16_t)abs((int16_t)((current_cycle) % 2048) - 1024);
-        green_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle + 1024) % 2048) - 1024);
-    } else {
-        green_intensity = 1024 - (uint16_t)abs((int16_t)((current_cycle + 1024) % 2048) - 1024);
-        blue_intensity  = 1024 - (uint16_t)abs((int16_t)((current_cycle) % 2048) - 1024);
+    // Handle caps lock indicator
+    if (keyboard->led_state & (1 << 1)) { // caps_lock
+        green_intensity = (1024 * rgb_brightness) / 8;
     }
 
     uint16_t color_intensity;
-
-    if (keyboard->led_state & (1 << 0)) { // num_lock
-        red_intensity = 1024;
-    }
-
-    if (keyboard->led_state & (1 << 1)) { // caps_lock
-        green_intensity = 1024;
-    }
-
-    if (keyboard->led_state & (1 << 2)) { // scroll_lock
-        blue_intensity = 1024;
-    }
 
     switch (current_step % 3) {
         case 0: // red
@@ -85,7 +107,6 @@ bool indicators_update_step(keyboard_state_t *keyboard, uint8_t current_step)
             RGB_R3R = 1;
             RGB_R4R = 1;
             RGB_ULR = 1;
-
             color_intensity = red_intensity;
             break;
 
@@ -94,9 +115,8 @@ bool indicators_update_step(keyboard_state_t *keyboard, uint8_t current_step)
             RGB_R1G = 1;
             RGB_R2G = 1;
             RGB_R3G = 1;
-            RGB_R4G = 1;
+            RGB_R4B = 1;  // Row 4: Green and Blue are swapped
             RGB_ULG = 1;
-
             color_intensity = green_intensity;
             break;
 
@@ -105,22 +125,17 @@ bool indicators_update_step(keyboard_state_t *keyboard, uint8_t current_step)
             RGB_R1B = 1;
             RGB_R2B = 1;
             RGB_R3B = 1;
-            RGB_R4B = 1;
+            RGB_R4G = 1;  // Row 4: Green and Blue are swapped
             RGB_ULB = 1;
-
             color_intensity = blue_intensity;
             break;
 
         default:
-            // unreachable
             color_intensity = 0;
             break;
     }
 
-    // set pwm duty cycles to expected colors
     indicators_pwm_set_all_columns(color_intensity);
-    */
-
     return false;
 }
 
@@ -204,4 +219,46 @@ void indicators_pwm_disable()
     PWM40CON = (uint8_t)(PWM_CLK_DIV);
     PWM41CON = 0;
     PWM42CON = 0;
+}
+
+// RGB Control Functions
+void rgb_cycle_mode()
+{
+    if (rgb_mode == 0) {
+        rgb_mode = 1; // Turn on to static mode
+    } else if (rgb_mode == 1) {
+        rgb_mode = 2; // Switch to rainbow mode
+    } else {
+        rgb_mode = 0; // Turn off
+    }
+}
+
+void rgb_cycle_color()
+{
+    if (rgb_mode == 1) {
+        rgb_color = (rgb_color + 1) % 7; // Cycle through static colors (0-6)
+    } else {
+        rgb_mode = 1; // Turn on to static mode if off
+        rgb_color = 0; // Start with red
+    }
+}
+
+void rgb_increase_brightness()
+{
+    if (rgb_brightness < 8) {
+        rgb_brightness++;
+    }
+    if (rgb_mode == 0) {
+        rgb_mode = 1; // Turn on if off
+    }
+}
+
+void rgb_decrease_brightness()
+{
+    if (rgb_brightness > 0) {
+        rgb_brightness--;
+    }
+    if (rgb_brightness == 0) {
+        rgb_mode = 0; // Turn off when brightness reaches 0
+    }
 }

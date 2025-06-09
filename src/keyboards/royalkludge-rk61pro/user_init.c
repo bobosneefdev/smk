@@ -39,13 +39,8 @@ void user_gpio_init()
 
     DRVCON = 0;
 
-    P0    = (uint8_t)(RGB_R2R_P0_2 | RGB_R0B_P0_3 | RGB_R0R_P0_4);
     P0CR  = (uint8_t)(RGB_R2R_P0_2 | RGB_R0B_P0_3 | RGB_R0R_P0_4);
-    P0PCR = (uint8_t)(RGB_R2R_P0_2 | RGB_R0B_P0_3 | RGB_R0R_P0_4);
-
-    P1    = (uint8_t)(RGB_ULR_P1_1 | RGB_ULG_P1_2 | RGB_ULB_P1_3);
     P1CR  = (uint8_t)(RGB_ULR_P1_1 | RGB_ULG_P1_2 | RGB_ULB_P1_3);
-    P1PCR = (uint8_t)(RGB_ULR_P1_1 | RGB_ULG_P1_2 | RGB_ULB_P1_3);
 
     P2    = (uint8_t)(KB_C13_P2_1 | KB_C12_P2_2 | KB_C11_P2_3 | KB_C10_P2_4 | KB_C9_P2_5);
     P2CR  = (uint8_t)(KB_C13_P2_1 | KB_C12_P2_2 | KB_C11_P2_3 | KB_C10_P2_4 | KB_C9_P2_5);
@@ -55,16 +50,12 @@ void user_gpio_init()
     P3CR  = (uint8_t)(KB_C3_P3_5 | KB_C4_P3_4 | KB_C5_P3_3 | KB_C6_P3_2 | KB_C7_P3_1 | KB_C8_P3_0);
     P3PCR = (uint8_t)(KB_C3_P3_5 | KB_C4_P3_4 | KB_C5_P3_3 | KB_C6_P3_2 | KB_C7_P3_1 | KB_C8_P3_0);
 
-    P4    = (uint8_t)(RGB_R3R_P4_5 | RGB_R3B_P4_6 | RGB_R4R_P4_4 | RGB_R4B_P4_3);
     P4CR  = (uint8_t)(RGB_R3R_P4_5 | RGB_R3B_P4_6 | RGB_R4R_P4_4 | RGB_R4B_P4_3);
-    P4PCR = (uint8_t)(RGB_R3R_P4_5 | RGB_R3B_P4_6 | RGB_R4R_P4_4 | RGB_R4B_P4_3);
 
-    P5CR  = (uint8_t)(KB_C0_P5_0 | KB_C1_P5_1 | KB_C2_P5_2);  // Columns as outputs
+    P5CR  = (uint8_t)(KB_C0_P5_0 | KB_C1_P5_1 | KB_C2_P5_2 | RGB_R2B_P5_7);  // Columns and RGB as outputs
     P5PCR = (uint8_t)(KB_R3_P5_3 | KB_R4_P5_4);  // Rows as inputs with pull-up
 
-    P6    = (uint8_t)(RGB_R0G_P6_1 | RGB_R1R_P6_7 | RGB_R1G_P6_2 | RGB_R1B_P6_6 | RGB_R2G_P6_3 | RGB_R3G_P6_4 | RGB_R4G_P6_5);
     P6CR  = (uint8_t)(RGB_R0G_P6_1 | RGB_R1R_P6_7 | RGB_R1G_P6_2 | RGB_R1B_P6_6 | RGB_R2G_P6_3 | RGB_R3G_P6_4 | RGB_R4G_P6_5);
-    P6PCR = (uint8_t)(RGB_R0G_P6_1 | RGB_R1R_P6_7 | RGB_R1G_P6_2 | RGB_R1B_P6_6 | RGB_R2G_P6_3 | RGB_R3G_P6_4 | RGB_R4G_P6_5);
 
     P7PCR = (uint8_t)(KB_R0_P7_1 | KB_R1_P7_2 | KB_R2_P7_3);  // Rows as inputs with pull-up
 }

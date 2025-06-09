@@ -3,6 +3,7 @@
 #include "user_layout.h"
 #include "report.h"
 #include "delay.h"
+#include "indicators.h"
 #include <stdint.h>
 
 // clang-format off
@@ -26,7 +27,12 @@
 
 enum custom_keycodes {
     // Toggle Windows key lock - press Fn + Windows key to toggle
-    WINDOWS_LOCK = SAFE_RANGE
+    WINDOWS_LOCK = SAFE_RANGE,
+    // RGB lighting control keys
+    LMODE,          // Cycle RGB mode (off -> static -> rainbow -> off)
+    LCYCLE,        // Cycle static colors
+    LINC,         // Increase brightness
+    LDEC         // Decrease brightness
 };
 
 // 1u = 4 spaces in diagram
@@ -66,11 +72,11 @@ const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * `------------------------------------------------------------'
      */
     [WINDOWS_FN] = LAYOUT_60(
-        KC_GRV,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,               KC_F8,               KC_F9,               KC_F10,            KC_F11,          KC_F12,  KC_DEL,
-        _______, _______, _______, _______, _______, _______, _______, _______,             _______,             _______,             _______,           _______,         _______, _______,
-        _______, _______, _______, _______, _______, _______, _______, KC_MEDIA_PREV_TRACK, KC_MEDIA_PLAY_PAUSE, KC_MEDIA_NEXT_TRACK, KC_VOLD,           KC_VOLU,                  _______,
-        _______, _______, _______, _______, _______, _______, _______, _______,             KC_HOME,             KC_END,              KC_UP,                                       _______,
-        _______, _______, _______,                   _______,                               KC_LEFT,             KC_DOWN,             KC_RIGHT,                                    _______
+        KC_GRV,  KC_F1,        KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,               KC_F8,               KC_F9,               KC_F10,            KC_F11,          KC_F12,  KC_DEL,
+        _______, _______,      _______, _______, _______, _______, _______, _______,             _______,             _______,             _______,           LDEC,            LINC,    LMODE,
+        _______, _______,      _______, _______, _______, _______, _______, KC_MEDIA_PREV_TRACK, KC_MEDIA_PLAY_PAUSE, KC_MEDIA_NEXT_TRACK, KC_VOLD,           KC_VOLU,                  LCYCLE,
+        _______, _______,      _______, _______, _______, _______, _______, _______,             KC_HOME,             KC_END,              KC_UP,                                       _______,
+        _______, WINDOWS_LOCK, _______,                   _______,                               KC_LEFT,             KC_DOWN,             KC_RIGHT,                                    _______
     ),
 };
 
@@ -102,6 +108,30 @@ bool layout_process_record(uint16_t keycode, bool key_pressed)
                 return false;
             }
             return true;
+
+        case LMODE:
+            if (key_pressed) {
+                rgb_cycle_mode();
+            }
+            return false;
+
+        case LCYCLE:
+            if (key_pressed) {
+                rgb_cycle_color();
+            }
+            return false;
+
+        case LINC:
+            if (key_pressed) {
+                rgb_increase_brightness();
+            }
+            return false;
+
+        case LDEC:
+            if (key_pressed) {
+                rgb_decrease_brightness();
+            }
+            return false;
 
         default:
             return true;
